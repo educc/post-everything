@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, UploadFile
 
 app = FastAPI()
 
@@ -21,11 +21,12 @@ def create_tree(uri: str) -> Path:
 
 
 @app.post("/{rest_of_path:path}")
-async def root(rest_of_path: str, request: Request):
+async def root(rest_of_path: str, file: UploadFile):
     dir_path: Path = create_tree(rest_of_path)
     abs_path: Path = dir_path / os.path.basename(rest_of_path)
 
     with abs_path.open("wb") as f:
-        data: bytes = await request.body()
-        f.write(data)
+        content = await file.read()  # async read
+        f.write(content)  # async write
+
     return {"message": f"File saved at {abs_path}"}
